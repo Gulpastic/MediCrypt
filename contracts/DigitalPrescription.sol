@@ -1,87 +1,65 @@
 // SPDX-License-Identifier: MIT
-
-/**
- * @dev a smart contract that verifies the state of a digital prescription and returns if it is correct and unused via a QR Code.
- *
- * This contract implements the functionality for creating and verifying digital prescriptions.
- *
- * The 'createPrescription' function allows a doctor to create a new prescription by specifying the medicine and the duration of
- * the prescription.
- *
- * The verifyPrescription function allows a patient to verify if a prescription is valid and has not yet been used. The prescription
- * is considered used after it has been verified once.
- *
- * The LogPrescription and LogPrescriptionUsage events are emitted to provide a history of prescription creation and usage for detection so that
- * our frontend can interact with the blockchain
- *
- * @author KartikGP2
- */
-
 pragma solidity ^0.8.0;
 
-contract DigitalPrescription {
-    struct Prescription {
-        uint256 id;
-        address doctor;
-        string[] medicine;
-        uint256 duration;
-        bool usageState;
+contract Prescription {
+    address Owner_1 = 0x7Af1F73AA53a2cc820C822457878bcdca247532D;
+    address _owner;
+    struct PrescriptionData {
+        bytes32 hash;
+        bool verified;
+        address uploadedBy;
     }
 
-    /**
-     * @dev checks whether the function that is called has been expired or not
-     */
+    mapping(address => PrescriptionData) prescriptions;
+    mapping(address => bool) verifiedDoctors;
+    mapping(address => bool) verifiedPharmacists;
 
-    modifier onlyIfNotExpired(uint256 _prescriptionId) {
+    modifier onlyVerifiedDoctors() {
         require(
-            prescriptions[_prescriptionId].duration >= block.timestamp,
-            "PRESCRIPTION_HAS_EXPIRED"
+            verifiedDoctors[msg.sender] == true,
+            "Only verified doctors can upload prescriptions"
         );
         _;
     }
 
-    // mapping between the prescription ID and the struct Prescription
-    mapping(uint256 => Prescription) public prescriptions;
+    modifier onlyVerifiedPharmacists() {
+        require(
+            verifiedPharmacists[msg.sender] == true,
+            "Only verified pharmacists can verify prescriptions"
+        );
+        _;
+    }
 
-    uint256 public nextPrescriptionId;
-
-    event LogPrescription(uint256 indexed id, address doctor, string[] medicine, uint256 duration);
-    event LogPrescriptionUsage(uint256 indexed _id);
+    modifier onlyOwner() {
+        require(msg.sender == _owner);
+        _;
+    }
 
     constructor() {
-        nextPrescriptionId = 0; // initializes the prescription id to zero
+        _owner = Owner_1;
     }
 
-    /**
-     * @dev function that creates a new instance of a prescription. This function is only allowed to be called by the doctor (not yet implemented)
-     * @param _duration represents the duration of the validity of the prescription
-     */
-
-    function createPrescription(string[] memory _medicine, uint256 _duration) external {
-        nextPrescriptionId++;
-        prescriptions[nextPrescriptionId].id = nextPrescriptionId;
-        prescriptions[nextPrescriptionId].doctor = msg.sender;
-        prescriptions[nextPrescriptionId].medicine = _medicine;
-        prescriptions[nextPrescriptionId].duration = _duration;
-        prescriptions[nextPrescriptionId].usageState = false;
-        emit LogPrescription(nextPrescriptionId, msg.sender, _medicine, _duration);
+    function uploadPrescription(bytes32 _hash) external onlyVerifiedDoctors {
+        prescriptions[msg.sender].hash = _hash;
+        prescriptions[msg.sender].uploadedBy = msg.sender;
     }
 
-    /**
-     * @dev function verifies the integrity if the digital prescription
-     * @return true if the digital prescription has been used
-     */
+    function verifyPrescription(address _user, bytes32 _hash) external onlyVerifiedPharmacists {
+        require(prescriptions[_user].hash == _hash, "Prescription hash does not match");
+        prescriptions[_user].verified = true;
+    }
 
-    function verifyPrescription(uint256 _prescriptionId)
-        external
-        onlyIfNotExpired(_prescriptionId)
-        returns (bool)
-    {
-        if (prescriptions[_prescriptionId].usageState) {
-            return false;
-        }
-        prescriptions[_prescriptionId].usageState = true;
-        emit LogPrescriptionUsage(_prescriptionId);
-        return true;
+    function changeDoctorStatus(address doctor, bool _verfificationStatus) external onlyOwner {
+        require(msg.sender == doctor, "Only the doctor can request verification");
+        verifiedDoctors[doctor] = _verfificationStatus;
+    }
+
+    function changePharmacistStatus(address _pharmacist, bool _verifiedStatus) external onlyOwner {
+        require(msg.sender == _pharmacist, "Only the pharmacist can request verification");
+        verifiedPharmacists[_pharmacist] = _verifiedStatus;
+    }
+
+    function isPrescriptionVerified(address user) public view returns (bool) {
+        return prescriptions[user].verified;
     }
 }
