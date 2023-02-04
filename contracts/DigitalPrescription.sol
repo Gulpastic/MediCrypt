@@ -45,12 +45,7 @@ contract DigitalPrescription {
 
     uint256 public nextPrescriptionId;
 
-    event LogPrescription(
-        uint256 indexed id,
-        address doctor,
-        string[] medicine,
-        uint256 duration
-    );
+    event LogPrescription(uint256 indexed id, address doctor, string[] medicine, uint256 duration);
     event LogPrescriptionUsage(uint256 indexed _id);
 
     constructor() {
@@ -62,21 +57,14 @@ contract DigitalPrescription {
      * @param _duration represents the duration of the validity of the prescription
      */
 
-    function createPrescription(string[] memory _medicine, uint256 _duration)
-        external
-    {
+    function createPrescription(string[] memory _medicine, uint256 _duration) external {
         nextPrescriptionId++;
         prescriptions[nextPrescriptionId].id = nextPrescriptionId;
         prescriptions[nextPrescriptionId].doctor = msg.sender;
         prescriptions[nextPrescriptionId].medicine = _medicine;
         prescriptions[nextPrescriptionId].duration = _duration;
         prescriptions[nextPrescriptionId].usageState = false;
-        emit LogPrescription(
-            nextPrescriptionId,
-            msg.sender,
-            _medicine,
-            _duration
-        );
+        emit LogPrescription(nextPrescriptionId, msg.sender, _medicine, _duration);
     }
 
     /**
