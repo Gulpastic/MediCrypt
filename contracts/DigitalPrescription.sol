@@ -49,9 +49,9 @@ contract Prescription {
         prescriptions[_user].verified = true;
     }
 
-    function changeDoctorStatus(address doctor, bool _verfificationStatus) external onlyOwner {
-        require(msg.sender == doctor, "Only the doctor can request verification");
-        verifiedDoctors[doctor] = _verfificationStatus;
+    function changeDoctorStatus(address _doctor, bool _verfificationStatus) external onlyOwner {
+        require(msg.sender == _doctor, "Only the doctor can request verification");
+        verifiedDoctors[_doctor] = _verfificationStatus;
     }
 
     function changePharmacistStatus(address _pharmacist, bool _verifiedStatus) external onlyOwner {
@@ -59,7 +59,7 @@ contract Prescription {
         verifiedPharmacists[_pharmacist] = _verifiedStatus;
     }
 
-    function isPrescriptionVerified(address user) public view returns (bool) {
-        return prescriptions[user].verified;
+    function isPrescriptionVerified(address _user) public view returns (bool) {
+        return prescriptions[_user].verified;
     }
 }
