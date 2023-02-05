@@ -5,8 +5,10 @@ This is a progressive web app that provides a secure and efficient way for docto
 ## Features
 
 Secure: MediCrypt uses the Ethereum Virtual Machine to ensure the authenticity and immutability of prescriptions.
+
 Convenient: Patients can access their prescriptions on their mobile devices anytime, anywhere.
-Efficient: Prescriptions are stored in a centralized, easily accessible location, eliminating the need for physical copies or manual transfer of information.
+
+Efficient: Prescriptions are stored in a decentralized, easily accessible location, eliminating the need for physical copies or manual transfer of information.
 
 ## Getting Started
 
